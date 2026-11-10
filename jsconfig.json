@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"checkJs": true,
+		"target": "ES2022",
+		"lib": ["ES2022"],
+		"module": "ESNext",
+		"moduleDetection": "force",
+		"noEmit": true
+	},
+	"include": ["samples/**/*.js", "community/**/*.js", "types/terraworld.d.ts"]
+}

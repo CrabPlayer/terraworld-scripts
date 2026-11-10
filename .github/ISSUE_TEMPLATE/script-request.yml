@@ -1,0 +1,31 @@
+name: Script request
+description: Ask the community for a script you would like to have.
+title: "[Request] "
+labels: ["script-request"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: What should the script do?
+      description: Describe the result you want to see, e.g. "mark every Shimmer pool and list their sizes".
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: How should the result be shown?
+      description: Numbers, a table, a chart, highlighted tiles, map pointers, a form asking for input…
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Links, screenshots, the world size you will use it on.
+  - type: checkboxes
+    id: check
+    attributes:
+      label: Check
+      options:
+        - label: I searched existing scripts and requests.
+          required: true
+        - label: I understand scripts are read-only for now (they cannot edit the world).
+          required: true

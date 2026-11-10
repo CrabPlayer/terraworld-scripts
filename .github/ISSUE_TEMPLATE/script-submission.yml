@@ -1,0 +1,45 @@
+name: Script submission
+description: Share a script without making a pull request. A maintainer will add it under community/<your-name>/.
+title: "[Script] "
+labels: ["script-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If you use Git, a pull request is faster: see [CONTRIBUTING.md](https://github.com/CrabPlayer/terraworld-scripts/blob/main/CONTRIBUTING.md).
+        One script per issue.
+  - type: input
+    id: name
+    attributes:
+      label: Script name
+      placeholder: Find Shimmer
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What it does
+    validations:
+      required: true
+  - type: textarea
+    id: code
+    attributes:
+      label: Script
+      description: The complete script, starting with the // @name, // @author, // @description and // @tw-api 1 header.
+      render: js
+    validations:
+      required: true
+  - type: textarea
+    id: tested
+    attributes:
+      label: Tested on
+      description: World size, browser, and what the output looked like.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Agreement
+      options:
+        - label: I wrote this script or have the right to share it, and release it under the MIT license.
+          required: true
+        - label: It uses only the documented tw API and does not try to get around the sandbox.
+          required: true
