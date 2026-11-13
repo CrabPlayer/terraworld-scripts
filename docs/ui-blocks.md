@@ -135,7 +135,7 @@ Pressing **Stop** closes the script's modals.
 ## Asking for input: `tw.ui.prompt(form)`
 
 Opens a form and waits for the user. Resolves to an object of values, or `null` if the user cancels.
-Time spent waiting for the user does not count toward the 30 s limit.
+Time spent waiting for the user (forms and map picking) does not count toward the 30 s limit.
 
 ```js
 const opt = await tw.ui.prompt({
@@ -162,9 +162,51 @@ Form options: `title`, `description`, `submitLabel`, `fields`. The keys of `fiel
 | `tile` | `label`, `default` (id or name) | Block id (`number`), picked with the app's block picker |
 | `wall` | `label`, `default` (id or name) | Wall id (`number`) |
 | `item` | `label`, `default` (id or name), `optional` | `number \| null`: item id, `null` only when optional and left empty. Check for `null` before using it |
+| `region` | `label`, `default` (a `Region`), `optional` | `Region` `{ x, y, w, h }`; with `optional: true` the type is `Region \| null` (`null` when not picked). Since 1.1.0 |
 
-With `terraworld.d.ts` in your editor, the result is typed per field: `opt.depth` above is
+A `region` field shows a **Pick region** button. Clicking it hides the form while the user drags a rectangle on the
+map (exactly like [`pickRegion`](#picking-on-the-map-pickregion-and-picktile)), then brings the form back with the
+values already entered.
+
+```js
+const opt = await tw.ui.prompt({
+  title: "Count a block in an area",
+  fields: {
+    block: { type: "tile", label: "Block", default: "Gold Ore" },
+    area:  { type: "region", label: "Area (leave empty for the whole world)", optional: true },
+  },
+});
+if (!opt) return;
+tw.ui.stat(tw.ids.tileName(opt.block), tw.tiles.histogram("tile", opt.area ?? undefined).get(opt.block) ?? 0);
+```
+
+With `terraworld.d.ts` in your editor, the result is typed per field: `opt.depth` in the first example is
 `"all" | "surface" | ...`, `opt.block` is `number`, `opt.mark` is `boolean`.
 
-Required fields are validated before the form closes. Not available yet: `region` and `color` fields,
-`tw.ui.pickRegion()`, `tw.ui.pickTile()`.
+Required fields are validated before the form closes. Not available yet: the `color` field.
+
+## Picking on the map: `pickRegion` and `pickTile`
+
+Since API 1.1.0 a script can ask the user to point at the map directly, without a form.
+
+| Function | The user… | Resolves to |
+|---|---|---|
+| `tw.ui.pickRegion({ title? })` | drags a rectangle | `Region` `{ x, y, w, h }`, clipped to the world, or `null` |
+| `tw.ui.pickTile({ title? })` | clicks or taps one tile | `{ x, y }`, or `null` |
+
+```js
+const tile = await tw.ui.pickTile({ title: "Click a block to identify" });
+if (!tile) return; // cancelled
+const t = tw.tiles.get(tile.x, tile.y);
+tw.ui.log(`(${tile.x}, ${tile.y}):`, t.active ? tw.ids.tileName(t.type) : "empty");
+```
+
+While picking:
+
+- Open script modals are hidden (they keep their content) and a bar shows `title` with **Confirm** and **Cancel**.
+  <kbd>Enter</kbd> confirms, <kbd>Esc</kbd> cancels; cancelling resolves to `null`.
+- Region: drag to draw. Tile: click or tap. Panning and zooming the map still work (on touch screens, two fingers
+  move the map), so it works on mobile too.
+- Picking never edits the world and does not switch on Edit Mode.
+- Time spent picking does not count toward the 30 s limit.
+- Only one pick runs at a time. **Stop** or closing the world cancels it.

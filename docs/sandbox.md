@@ -44,7 +44,7 @@ preview and confirmation step, but is not available.
 ## Time limit: 30 seconds
 
 A script may use up to **30 s of computing time**. Past that it is stopped with
-`Script exceeded the 30 s time limit and was stopped.` Time spent waiting in `tw.ui.prompt` does not count.
+`Script exceeded the 30 s time limit and was stopped.` Time spent waiting in `tw.ui.prompt`, `tw.ui.pickRegion` or `tw.ui.pickTile` does not count.
 **Stop** in the Script panel ends a script at any time.
 
 If you hit the limit:
@@ -75,7 +75,8 @@ If you hit the limit:
 | Skipped | names starting with `.`, `node_modules` |
 | Browsers | Chromium-based (folder access needs the File System Access API) |
 
-The app only reads this folder; it never writes to it.
+The app writes to this folder only when you save from its editor (**Save** / **Save as new file**), after asking for
+write access. Scripts themselves can never write files.
 
 ## Memory
 

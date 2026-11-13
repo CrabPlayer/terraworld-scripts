@@ -46,7 +46,7 @@ App đọc như sau:
 - File `.js` và `.mjs`, trong tối đa **3 cấp thư mục con**. Bản clone repo này vừa đủ:
   `twscript/terraworld-scripts/community/<tác-giả>/script.js` là 3 cấp.
 - Tối đa 300 file, mỗi file tối đa 512 KB. Bỏ qua file/thư mục bắt đầu bằng `.` và `node_modules`.
-- Chỉ đọc: app không bao giờ ghi vào thư mục này.
+- App chỉ ghi vào thư mục này khi bạn bấm lưu trong trình soạn của app (xem bên dưới).
 
 ## Chạy script
 
@@ -57,8 +57,24 @@ App đọc như sau:
 4. Chọn script. Script được nạp vào ô soạn thảo; bấm **Run** (hoặc <kbd>Ctrl</kbd>+<kbd>Enter</kbd>).
 5. Nếu sửa file bằng trình soạn thảo khác, bấm **Reload from disk** để nạp lại.
 
-Firefox và Safari không mở được thư mục trên máy. Trên đó bạn vẫn dán script vào ô soạn thảo để chạy,
-hoặc bắt đầu từ menu **Sample scripts**.
+## Viết script ngay trong app
+
+Panel Script có trình soạn code đầy đủ (CodeMirror): tô màu cú pháp, số dòng, tìm kiếm (<kbd>Ctrl</kbd>+<kbd>F</kbd>),
+gợi ý `tw.*` khi gõ, chú thích khi rê chuột và gạch đỏ tên `tw.*` không tồn tại. Gợi ý lấy từ chính file
+[`terraworld.d.ts`](types/terraworld.d.ts) trong repo này.
+
+Script lưu thẳng vào `twscript`, không cần copy/paste:
+
+- **Save** (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>S</kbd>) ghi đè file local đang mở.
+- **Save as new file** (trong menu *Local scripts*, hoặc <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>S</kbd> khi chưa mở file nào)
+  hỏi tên file, tự thêm `.js` và tạo `twscript` nếu chưa có. File trùng tên chỉ bị thay sau khi bạn xác nhận.
+- Lần lưu đầu tiên app sẽ xin quyền ghi vào thư mục.
+
+Nút **Ask AI** cạnh **Run** soạn sẵn lời nhắn cho ChatGPT, Claude hay trợ lý khác, kèm đầy đủ kiểu API;
+xem [docs/ai-guide.md](docs/ai-guide.md).
+
+Firefox và Safari không mở được thư mục trên máy nên không có *Local scripts* và không lưu file được. Trên đó bạn
+vẫn dán script vào ô soạn thảo để chạy, hoặc bắt đầu từ menu **Sample scripts**.
 
 ## Tài liệu
 

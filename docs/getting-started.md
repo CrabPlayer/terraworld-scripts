@@ -5,7 +5,8 @@ Script panel visible (**Data → Script**).
 
 ## 1. Hello world
 
-Type this into the editor and press **Run** (<kbd>Ctrl</kbd>+<kbd>Enter</kbd>):
+Type this into the editor and press **Run** (<kbd>Ctrl</kbd>+<kbd>Enter</kbd>). As you type `tw.`, the editor suggests
+what comes next and shows its documentation:
 
 ```js
 tw.ui.log("World:", tw.world.name, `${tw.world.width} x ${tw.world.height}`);
@@ -62,7 +63,9 @@ tw.ui.stat(tw.ids.tileName(opt.block), tw.tiles.histogram("tile").get(opt.block)
 
 ## 5. Save it as a file
 
-Save your script as `something.js` in `Documents/My Games/Terraria/twscript` and add a header at the top:
+Press <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>S</kbd> (or **Save as new file** in the *Local scripts* menu) and give it a
+name: TerraWorld saves it as `something.js` in `Documents/My Games/Terraria/twscript`. The first time, allow write
+access to the folder. (In Firefox/Safari, save it there with any text editor instead.) Add a header at the top:
 
 ```js
 // @name Count a block
@@ -73,9 +76,23 @@ Save your script as `something.js` in `Documents/My Games/Terraria/twscript` and
 
 It now shows up under **Local scripts** in the Script panel.
 
-## 6. Set up your editor (optional)
+## 6. Pick a place on the map
 
-For autocomplete and type checking in VS Code, copy [`types/terraworld.d.ts`](../types/terraworld.d.ts) and
+`tw.ui.pickRegion` lets the user drag a rectangle on the map; the script waits until they confirm (Enter) or
+cancel (Esc).
+
+```js
+const area = await tw.ui.pickRegion({ title: "Drag over the area to count" });
+if (!area) return;
+const mud = tw.ids.tile("Mud Block");
+tw.ui.stat("Mud blocks here", tw.tiles.count(t => t.active && t.type === mud, area));
+```
+
+`tw.ui.pickTile` does the same for a single tile. See [picking on the map](ui-blocks.md#picking-on-the-map-pickregion-and-picktile).
+
+## 7. Use VS Code instead (optional)
+
+The in-app editor already suggests `tw.*`. If you prefer VS Code, for autocomplete and type checking there copy [`types/terraworld.d.ts`](../types/terraworld.d.ts) and
 [`types/jsconfig.json`](../types/jsconfig.json) into your `twscript` folder, next to your scripts, and open that
 folder in VS Code (*File → Open Folder…*). Typing `tw.` then lists every function with its documentation.
 

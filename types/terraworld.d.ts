@@ -1,7 +1,7 @@
 /**
  * TerraWorld script API — type declarations.
  *
- * @tw-api-version 1.0.0
+ * @tw-api-version 1.1.0
  *
  * Scripts are plain JavaScript run by TerraWorld (https://terraworld.dev) in a sandboxed
  * Web Worker. The whole file is the body of an `async` function that receives `tw`, so
@@ -318,7 +318,12 @@ declare namespace TerraWorld {
 		/** Shared block/wall picker. Default: id or English name. Always resolves to an id. */
 		| { type: "tile" | "wall"; label: string; default?: number | string }
 		/** Item search. Resolves to an item id, or null when optional and left empty. */
-		| { type: "item"; label: string; default?: number | string; optional?: boolean };
+		| { type: "item"; label: string; default?: number | string; optional?: boolean }
+		/**
+		 * A "Pick region" button: the form hides while the user drags a rectangle on the map
+		 * (same as `tw.ui.pickRegion`). Resolves to the region, or null when optional and not picked.
+		 */
+		| { type: "region"; label: string; default?: Region; optional?: boolean };
 
 	interface Form<F extends Record<string, FormField> = Record<string, FormField>> {
 		title?: string;
@@ -336,6 +341,8 @@ declare namespace TerraWorld {
 		: T extends { type: "checkbox" } ? boolean
 		: T extends { type: "tile" | "wall" } ? number
 		: T extends { type: "item" } ? number | null
+		: T extends { type: "region"; optional: true } ? Region | null
+		: T extends { type: "region" } ? Region
 		: never;
 
 	type FormValues<F extends Record<string, FormField>> = { [K in keyof F]: FieldValue<F[K]> };
@@ -349,10 +356,26 @@ declare namespace TerraWorld {
 		modal(options: { title: string; size?: ModalSize }): Modal;
 		/** Asks for input with a form. Resolves to the values, or null if cancelled. */
 		prompt<const F extends Record<string, FormField>>(form: Form<F>): Promise<FormValues<F> | null>;
+		/**
+		 * Hides open script modals (they keep their state) and asks the user to drag a
+		 * rectangle on the map; a bar shows `title` with Confirm / Cancel (Esc cancels).
+		 * Resolves to the region clipped to the world, or null if cancelled.
+		 * Picking time does not count toward the time limit.
+		 * @example
+		 * const region = await tw.ui.pickRegion({ title: "Area to scan" });
+		 * if (!region) return;
+		 * tw.ui.stat("Ore blocks", tw.tiles.count((t) => t.active && t.type === tw.ids.tile("Gold Ore"), region));
+		 */
+		pickRegion(options?: { title?: string }): Promise<Region | null>;
+		/**
+		 * Like `pickRegion`, but the user clicks / taps a single tile.
+		 * Resolves to its coordinates, or null if cancelled.
+		 */
+		pickTile(options?: { title?: string }): Promise<{ x: number; y: number } | null>;
 	}
 
 	interface Api {
-		/** API version, e.g. "1.0.0". */
+		/** API version, e.g. "1.1.0". */
 		readonly version: string;
 		readonly world: World;
 		readonly tiles: Tiles;

@@ -2,7 +2,7 @@
 
 | File | What it is |
 |---|---|
-| [`terraworld.d.ts`](terraworld.d.ts) | TypeScript declarations for the `tw` API, **API version 1.0.0** (`@tw-api-version` in its header) |
+| [`terraworld.d.ts`](terraworld.d.ts) | TypeScript declarations for the `tw` API, **API version 1.1.0** (`@tw-api-version` in its header) |
 | [`jsconfig.json`](jsconfig.json) | Editor settings that make VS Code check plain `.js` scripts against those types |
 
 These are copies. The original files live in the TerraWorld app (`static/scripting/`), where a test keeps
@@ -13,6 +13,9 @@ These are copies. The original files live in the TerraWorld app (`static/scripti
 [report the difference](https://github.com/CrabPlayer/terraworld-scripts/issues/new?template=bug-report.yml).
 
 ## Autocomplete in VS Code
+
+TerraWorld's own Script editor already uses this file for suggestions, hover docs and red underlines, so you only
+need the steps below if you write scripts in VS Code.
 
 **For your own scripts:** copy both files into your `twscript` folder, next to your scripts, then open that folder
 in VS Code (*File → Open Folder…*):

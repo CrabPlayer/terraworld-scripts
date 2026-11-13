@@ -9,3 +9,4 @@ Official examples, the same ones built into the Script panel's **Sample scripts*
 | [life-crystals.js](life-crystals.js) | Marks every Life Crystal, lists the closest to spawn | `forEach`, frame check, `map.markAll` |
 | [chest-items.js](chest-items.js) | Finds chests that contain an item | `prompt` item field, `tw.chests`, `map.markAll` |
 | [ores.js](ores.js) | Ore counts per layer | `regions`, `histogram` with a region |
+| [ores-in-region.js](ores-in-region.js) | Ore counts in an area you drag on the map (API 1.1) | `pickRegion`, `chart`, `highlight` with a region |

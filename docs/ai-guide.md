@@ -3,6 +3,10 @@
 > **How to use:** copy everything below the line into ChatGPT, Claude or another assistant, **and attach or paste
 > [`types/terraworld.d.ts`](../types/terraworld.d.ts) with it**, then describe the script you want. Paste the
 > result into the Script panel and press Run. If it fails, paste the error back.
+>
+> Inside TerraWorld you can skip the copying: the **Ask AI** button next to **Run** builds a message with your request,
+> the sandbox rules, the current script and its last error, and the full `terraworld.d.ts`, and copies it to the
+> clipboard. Paste the AI's answer back into that dialog and the script lands in the editor.
 
 ---
 
@@ -29,7 +33,7 @@ The file `terraworld.d.ts` (attached) declares the exact API: the global `tw` ha
 // @tw-api 1
 ```
 
-## API (version 1) summary — `terraworld.d.ts` has the full types
+## API (version 1.1) summary — `terraworld.d.ts` has the full types
 
 ```ts
 tw.version: string
@@ -93,9 +97,15 @@ tw.ui.prompt({ title?, description?, submitLabel?, fields: Record<key, Field> })
        | { type: "checkbox", label, default? }                                -> boolean
        | { type: "tile" | "wall", label, default?: id|name }                  -> id (number)
        | { type: "item", label, default?: id|name, optional? }                -> number | null (check null)
+       | { type: "region", label, default?: Region }                          -> Region (user drags on the map)
+       | { type: "region", ..., optional: true }                              -> Region | null
+
+tw.ui.pickRegion({ title? }): Promise<Region | null>        // user drags a rectangle on the map; null = cancelled
+tw.ui.pickTile({ title? }): Promise<{ x, y } | null>        // user clicks one tile; null = cancelled
+  // Waiting for forms and picks does not count toward the 30 s limit.
 ```
 
-**Does not exist — never use:** `tw.edit`, `tw.ui.pickRegion`, `tw.ui.pickTile`, `region`/`color` form fields,
+**Does not exist — never use:** `tw.edit`, the `color` form field,
 `tw.world.progression`, `TileGroups.ore`/`gem`/`solid`, `onRowClick`.
 
 ## Gotchas

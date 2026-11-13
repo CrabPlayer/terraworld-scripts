@@ -46,7 +46,7 @@ What the app reads:
 - `.js` and `.mjs` files, up to **3 levels of sub-folders** deep. A clone of this repo fits:
   `twscript/terraworld-scripts/community/<author>/script.js` is three folders down.
 - At most 300 files and 512 KB per file. Files and folders starting with `.` and `node_modules` are skipped.
-- Read-only: the app never writes to the folder.
+- The app writes to the folder only when you save from its editor (see below).
 
 ## Run a script
 
@@ -57,8 +57,24 @@ What the app reads:
 4. Pick a script. It loads into the editor; press **Run** (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>).
 5. If you edit the file in another editor, use **Reload from disk** to pick up the change.
 
-Firefox and Safari cannot open local folders. There you can still paste a script into the editor and run it,
-or start from the **Sample scripts** menu.
+## Write scripts in the app
+
+The Script panel has a full code editor (CodeMirror): syntax colours, line numbers, search (<kbd>Ctrl</kbd>+<kbd>F</kbd>),
+and suggestions for `tw.*` as you type, with documentation on hover and a red underline for `tw.*` names that do not
+exist. The suggestions come from the same [`terraworld.d.ts`](types/terraworld.d.ts) published here.
+
+Scripts save straight into `twscript`, so there is no copy and paste:
+
+- **Save** (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>S</kbd>) overwrites the local file you opened.
+- **Save as new file** (in the *Local scripts* menu, or <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>S</kbd> when no file is open)
+  asks for a name, adds `.js` and creates `twscript` if needed. An existing file is replaced only after you confirm.
+- The first save asks for write access to the folder.
+
+**Ask AI** next to **Run** prepares a message for ChatGPT, Claude or another assistant, including the full API
+types; see [docs/ai-guide.md](docs/ai-guide.md).
+
+Firefox and Safari cannot open local folders, so *Local scripts* and saving are unavailable there. You can still
+paste a script into the editor and run it, or start from the **Sample scripts** menu.
 
 ## Documentation
 

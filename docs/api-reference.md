@@ -21,7 +21,9 @@ Coordinates are tile coordinates: `x` grows to the right, `y` grows downward, `(
 
 ## `tw.version`
 
-`string` — the API version, currently `"1.0.0"`.
+`string` — the API version, currently `"1.1.0"`. Minor versions only add features: 1.1.0 added
+`tw.ui.pickRegion`, `tw.ui.pickTile` and the `region` form field. A script that uses them does not work in an older
+build of the app.
 
 ## `tw.world`
 
@@ -214,16 +216,23 @@ Output to the Script panel, modals and forms.
 | `progress(fraction, message?)` | Progress bar, `fraction` from 0 to 1 |
 | `modal({ title, size? })` | Open a modal; returns a surface plus `setTitle`, `close`, `closed` |
 | `prompt(form)` | Ask for input; resolves to the values or `null` |
+| `pickRegion({ title? })` | Let the user drag a rectangle on the map; resolves to a `Region` or `null` (since 1.1.0) |
+| `pickTile({ title? })` | Let the user click/tap one tile; resolves to `{ x, y }` or `null` (since 1.1.0) |
 | `highlight(...)` | Same as `tw.map.highlight` |
 
-See [ui-blocks.md](ui-blocks.md).
+```js
+const region = await tw.ui.pickRegion({ title: "Area to scan" });
+if (!region) return; // cancelled
+tw.ui.stat("Gold Ore", tw.tiles.histogram("tile", region).get(tw.ids.tile("Gold Ore")) ?? 0);
+```
+
+See [ui-blocks.md](ui-blocks.md#picking-on-the-map-pickregion-and-picktile).
 
 ## Not available yet
 
-These appear in design notes but **do not exist in API version 1**. Calling a missing function throws
-`TypeError`; a form field of an unsupported type is not shown correctly.
+These appear in design notes but **do not exist yet**. Calling a missing function throws `TypeError`; a form field
+of an unsupported type is not shown correctly.
 
-- `tw.ui.pickRegion()`, `tw.ui.pickTile()` and the `region` form field — letting the user drag-select on the map.
 - `color` form field.
 - `tw.edit.*` — changing blocks, walls or paint. Scripts are read-only.
 - Plugins, persistent storage, network access.
