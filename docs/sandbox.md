@@ -35,16 +35,19 @@ what `tw` exposes.
 Do not try to get around these. Scripts that do (for example by loading code from a URL, or reaching the worker's
 messaging) are rejected from this repository, and may break without notice.
 
-## Read-only
+## Reading and editing
 
-Scripts read a **copy** of the world. They cannot change blocks, walls, chests or anything else, and nothing they do
-is saved into the world file. Highlights and pointers are display only. An editing API (`tw.edit`) is planned, with a
-preview and confirmation step, but is not available.
+Scripts read a **snapshot** of the world taken when the run starts. Highlights and pointers are display only.
+
+The only way a script can change the world is [`tw.edit`](editing.md) (API 1.2.0): it builds a draft, and nothing
+changes until **you** press Apply in the preview; the change is then one undo step. Only plain vanilla blocks and walls
+can be placed, and furniture and modded cells are skipped. Scripts cannot edit chests, signs or other entities, and
+nothing is saved to the world file until you save the world yourself.
 
 ## Time limit: 30 seconds
 
 A script may use up to **30 s of computing time**. Past that it is stopped with
-`Script exceeded the 30 s time limit and was stopped.` Time spent waiting in `tw.ui.prompt`, `tw.ui.pickRegion` or `tw.ui.pickTile` does not count.
+`Script exceeded the 30 s time limit and was stopped.` Time spent waiting in `tw.ui.prompt`, `tw.ui.pickRegion`, `tw.ui.pickTile` or the `tw.edit.commit` preview does not count.
 **Stop** in the Script panel ends a script at any time.
 
 If you hit the limit:

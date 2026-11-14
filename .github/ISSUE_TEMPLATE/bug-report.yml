@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for reporting. Please check the [docs](https://github.com/CrabPlayer/terraworld-scripts/tree/main/docs) first:
-        some features (pickRegion, tw.edit, plugins) are not available yet.
+        some features (placing furniture with tw.edit, the color form field, plugins) are not available yet.
         English or Vietnamese is fine.
   - type: dropdown
     id: area

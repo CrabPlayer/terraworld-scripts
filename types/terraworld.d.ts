@@ -1,7 +1,7 @@
 /**
  * TerraWorld script API — type declarations.
  *
- * @tw-api-version 1.1.0
+ * @tw-api-version 1.2.0
  *
  * Scripts are plain JavaScript run by TerraWorld (https://terraworld.dev) in a sandboxed
  * Web Worker. The whole file is the body of an `async` function that receives `tw`, so
@@ -91,7 +91,7 @@ declare namespace TerraWorld {
 		readonly paint: number;
 		/** Wall paint id. Needs layer `wallPaint`. */
 		readonly wallPaint: number;
-		/** 0 = full block, 1 = half block, 2–5 = slopes. Needs layer `slope`. */
+		/** 0 = full block, 1 = half block, 2–5 = slopes (see `Slope`). Needs layer `slope`. */
 		readonly slope: number;
 		/** Needs layer `actuator`. */
 		readonly actuator: boolean;
@@ -163,6 +163,114 @@ declare namespace TerraWorld {
 		/** Bottom 200 rows. */
 		underworld(): Region;
 		rect(x: number, y: number, w: number, h: number): Region;
+	}
+
+	// ── Editing ────────────────────────────────────────────────────────
+
+	/** Tile/wall id, or an English name (case-insensitive) as in `tw.ids.tile()`. */
+	type IdOrName = number | string;
+
+	/** Block shapes. Numbers 0–5 work too (same as `Tile.slope`). */
+	type Slope = "full" | "half" | "topRight" | "topLeft" | "bottomRight" | "bottomLeft";
+
+	interface ReplaceOptions {
+		/** Id, name, or a set/array of them, e.g. `tw.ids.TileGroups.corruption`. */
+		from: IdOrName | Iterable<IdOrName>;
+		/**
+		 * New id or name, `null` to remove the block/wall, or a function of the old id.
+		 * The function may return `undefined` to leave that cell alone.
+		 */
+		to: IdOrName | null | ((id: number, x: number, y: number) => IdOrName | null | undefined);
+		/** Default `"tile"`. `"wall"` needs the wall layer (detected from the word "wall"). */
+		kind?: "tile" | "wall";
+		/** Default: the whole world. */
+		region?: Region;
+	}
+
+	interface FillOptions {
+		/** Block to place everywhere, `null` to remove blocks. */
+		tile?: IdOrName | null;
+		/** Wall to place everywhere, `null` to remove walls. */
+		wall?: IdOrName | null;
+		/** Paint id 0–31 (0 = none). */
+		paint?: number;
+		wallPaint?: number;
+		/** `amount` 0–255, default 255 (full). */
+		liquid?: { type: LiquidType; amount?: number };
+	}
+
+	interface CommitResult {
+		/** True when the user pressed Apply. */
+		applied: boolean;
+		/** Cells changed (0 when cancelled). */
+		count: number;
+		/** Cells left alone for safety (sum of `skippedBy`). */
+		skipped: number;
+		/**
+		 * `modded`: tModLoader-owned cells. `object`: cells holding furniture or other
+		 * multi-tile objects (chests, doors, trees…), which would break. `shape`: slopes or
+		 * half blocks the block cannot take.
+		 */
+		skippedBy: { modded: number; object: number; shape: number };
+	}
+
+	/**
+	 * Changes to the world, made safely in three steps:
+	 * 1. `set…` / `replace` / `fill` only write to a **draft**. The world does not change.
+	 * 2. `await tw.edit.commit({ label })` highlights the changed cells on the map and asks
+	 *    the user to Apply or Cancel (waiting does not count toward the time limit).
+	 * 3. Applied changes become **one** undo step (Edit Mode → Undo, or Undo in the Script panel).
+	 *
+	 * Reads (`tw.tiles.*`) always see the world as it was when the run started; the draft
+	 * is not visible to them, even after `commit()`. A draft that is never committed is
+	 * thrown away with a warning. At most 1,000,000 cells per draft; the preview warns
+	 * above 100,000.
+	 *
+	 * Safety rules (checked again by TerraWorld when you commit):
+	 * - Only plain vanilla blocks and walls can be placed. Furniture / multi-tile objects
+	 *   (frame-important tiles) and modded ids throw an error.
+	 * - Cells holding furniture/objects are never replaced or cleared, and modded cells are
+	 *   never touched: they are skipped and counted in `skippedBy`. Painting them, or
+	 *   changing their wall or liquid, is allowed.
+	 * - `setTile` keeps the cell's paint and, when the new block allows it, its slope.
+	 *
+	 * @example
+	 * // Turn every Ebonstone block into Stone.
+	 * tw.edit.replace({ from: "Ebonstone Block", to: "Stone Block" });
+	 * const result = await tw.edit.commit({ label: "Ebonstone → Stone" });
+	 * tw.ui.stat("Changed", result.count, { unit: result.applied ? "tiles" : "tiles (cancelled)" });
+	 */
+	interface Edit {
+		/** Places a block. Throws for furniture/objects and modded ids. */
+		setTile(x: number, y: number, tile: IdOrName): void;
+		/** Removes the block (and its paint, slope and actuator). */
+		clearTile(x: number, y: number): void;
+		setWall(x: number, y: number, wall: IdOrName): void;
+		clearWall(x: number, y: number): void;
+		/** Paint id 0–31; 0 removes paint. */
+		setPaint(x: number, y: number, color: number): void;
+		setWallPaint(x: number, y: number, color: number): void;
+		/** `amount` 0–255, default 255. `"none"` or 0 removes the liquid. */
+		setLiquid(x: number, y: number, type: LiquidType, amount?: number): void;
+		/** Skipped at commit when the cell has no block or the block cannot take that shape. */
+		setSlope(x: number, y: number, slope: Slope | number): void;
+		/**
+		 * Replaces matching blocks (or walls) in `region`, judged on the world as loaded.
+		 * Returns how many cells were added to the draft.
+		 */
+		replace(options: ReplaceOptions): number;
+		/** Sets the given fields on every cell of `region`. Returns the number of cells. */
+		fill(region: Region, options: FillOptions): number;
+		/** Cells in the current draft. */
+		readonly count: number;
+		/** Empties the draft without asking the user. */
+		discard(): void;
+		/**
+		 * Shows the draft on the map and waits for Apply / Cancel. The draft is emptied
+		 * either way, so a script can commit several parts (each is its own undo step).
+		 * Resolves immediately with `applied: false` when the draft is empty.
+		 */
+		commit(options?: { label?: string }): Promise<CommitResult>;
 	}
 
 	// ── Entities ───────────────────────────────────────────────────────
@@ -375,7 +483,7 @@ declare namespace TerraWorld {
 	}
 
 	interface Api {
-		/** API version, e.g. "1.1.0". */
+		/** API version, e.g. "1.2.0". */
 		readonly version: string;
 		readonly world: World;
 		readonly tiles: Tiles;
@@ -383,6 +491,8 @@ declare namespace TerraWorld {
 		readonly regions: Regions;
 		readonly map: MapApi;
 		readonly ui: Ui;
+		/** Draft → preview → user approval → one undo step. See `TerraWorld.Edit`. */
+		readonly edit: Edit;
 		readonly entitiesLoaded: boolean;
 		readonly chests: readonly Chest[];
 		readonly npcs: readonly Npc[];
@@ -392,8 +502,9 @@ declare namespace TerraWorld {
 }
 
 /**
- * The TerraWorld API. Read-only access to the open world, plus output to the Script
- * panel, modals and map overlays. No network, storage or DOM; a run stops after 30 s
- * of work (time spent waiting for the user is not counted).
+ * The TerraWorld API. Read access to the open world, output to the Script panel, modals
+ * and map overlays, and `tw.edit` for changes the user previews and approves. No network,
+ * storage or DOM; a run stops after 30 s of work (time spent waiting for the user is not
+ * counted).
  */
 declare const tw: TerraWorld.Api;

@@ -27,6 +27,11 @@ Thanks for helping! This repository collects TerraWorld scripts, their documenta
    Opening the repository in VS Code shows the same type errors as you type.
 6. Open a pull request and fill in the template.
 
+To give reviewers and users a one-click way to try it, put an *Open in TerraWorld* link in your PR description:
+`node tools/make-link.mjs community/<your-github-name>/<script-name>.js` (see [docs/share-links.md](docs/share-links.md)).
+Scripts that use `tw.edit` must call `await tw.edit.commit({ label })` with a clear label and report `result.applied`
+(see [docs/editing.md](docs/editing.md)).
+
 ### One script per pull request
 
 Each pull request adds or changes **one** script. This keeps reviews short and lets each script be accepted on its

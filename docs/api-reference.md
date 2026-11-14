@@ -17,13 +17,14 @@ Coordinates are tile coordinates: `x` grows to the right, `y` grows downward, `(
 - [`tw.chests`, `tw.npcs`, `tw.signs`, `tw.tileEntities`](#entities)
 - [`tw.map`](#twmap) (details in [map-marks.md](map-marks.md))
 - [`tw.ui`](#twui) (details in [ui-blocks.md](ui-blocks.md))
+- [`tw.edit`](#twedit) (details in [editing.md](editing.md))
 - [Not available yet](#not-available-yet)
 
 ## `tw.version`
 
-`string` — the API version, currently `"1.1.0"`. Minor versions only add features: 1.1.0 added
-`tw.ui.pickRegion`, `tw.ui.pickTile` and the `region` form field. A script that uses them does not work in an older
-build of the app.
+`string` — the API version, currently `"1.2.0"`. Minor versions only add features (see the
+[changelog](../CHANGELOG.md)): 1.1.0 added `tw.ui.pickRegion`, `tw.ui.pickTile` and the `region` form field; 1.2.0
+added `tw.edit`. A script that uses them does not work in an older build of the app.
 
 ## `tw.world`
 
@@ -228,13 +229,36 @@ tw.ui.stat("Gold Ore", tw.tiles.histogram("tile", region).get(tw.ids.tile("Gold 
 
 See [ui-blocks.md](ui-blocks.md#picking-on-the-map-pickregion-and-picktile).
 
+## `tw.edit`
+
+Changes to the world, made in three steps: draft → `await tw.edit.commit({ label })` shows a preview on the map →
+the user presses Apply (one undo step) or Cancel. Since 1.2.0.
+
+| Member | Notes |
+|---|---|
+| `setTile`, `clearTile`, `setWall`, `clearWall` | One cell. Ids or English names |
+| `setPaint`, `setWallPaint`, `setLiquid`, `setSlope` | One cell |
+| `replace({ from, to, kind?, region? })` | Bulk replace; `to` may be a function of the old id. Returns cells drafted |
+| `fill(region, { tile?, wall?, paint?, wallPaint?, liquid? })` | Set fields on every cell of a region |
+| `count`, `discard()` | Draft size; empty the draft |
+| `commit({ label? })` | Preview and wait; resolves to `{ applied, count, skipped, skippedBy }` |
+
+```js
+tw.edit.replace({ from: "Ebonstone Block", to: "Stone Block" });
+const result = await tw.edit.commit({ label: "Ebonstone → Stone" });
+if (!result.applied) tw.ui.log("Cancelled");
+```
+
+Only plain vanilla blocks and walls can be placed; furniture and modded cells are skipped. Reads keep showing the
+world as it was when the run started, even after `commit()`. See [editing.md](editing.md).
+
 ## Not available yet
 
 These appear in design notes but **do not exist yet**. Calling a missing function throws `TypeError`; a form field
 of an unsupported type is not shown correctly.
 
 - `color` form field.
-- `tw.edit.*` — changing blocks, walls or paint. Scripts are read-only.
+- `tw.edit` placing furniture / multi-tile objects, editing wires and actuators, or editing entities (chests, signs…).
 - Plugins, persistent storage, network access.
 - `tw.world.progression` — use `tw.world.bosses`.
 - Checking `@tw-api` against the app version. The header is informational for now.

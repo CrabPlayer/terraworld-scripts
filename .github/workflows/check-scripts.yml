@@ -18,6 +18,8 @@ jobs:
           node-version: 22
       - name: Syntax and header check
         run: node .github/scripts/check-scripts.mjs
+      - name: Open-in-TerraWorld links in samples/README.md are current
+        run: node tools/make-link.mjs --check-readme
       - name: Type-check against types/terraworld.d.ts
         run: node .github/scripts/typecheck-scripts.mjs
         env:

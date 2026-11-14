@@ -2,7 +2,7 @@
 
 | File | What it is |
 |---|---|
-| [`terraworld.d.ts`](terraworld.d.ts) | TypeScript declarations for the `tw` API, **API version 1.1.0** (`@tw-api-version` in its header) |
+| [`terraworld.d.ts`](terraworld.d.ts) | TypeScript declarations for the `tw` API, **API version 1.2.0** (`@tw-api-version` in its header) |
 | [`jsconfig.json`](jsconfig.json) | Editor settings that make VS Code check plain `.js` scripts against those types |
 
 These are copies. The original files live in the TerraWorld app (`static/scripting/`), where a test keeps

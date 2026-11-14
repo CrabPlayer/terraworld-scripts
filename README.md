@@ -7,7 +7,8 @@ against the world you have open: count blocks, find items in chests, mark Life C
 with tables and charts. Scripts run in a sandboxed Web Worker and talk to the app only through the global `tw` object.
 
 > **Status:** script API version **1**, still settling. Names may change before it is declared stable.
-> Scripts are **read-only** for now: they can analyse and mark the map, not edit the world.
+> Since API 1.2.0 scripts can also **edit** the world with `tw.edit`: every change is previewed on the map and applied
+> only when you press **Apply**, as one undo step. See [docs/editing.md](docs/editing.md) and the [changelog](CHANGELOG.md).
 
 [Tiếng Việt](README.vi.md)
 
@@ -18,6 +19,8 @@ with tables and charts. Scripts run in a sandboxed Web Worker and talk to the ap
 | [`samples/`](samples) | Official example scripts (the same ones built into the app's *Sample scripts* menu) |
 | [`community/<author>/`](community) | Scripts contributed by users, one folder per GitHub username |
 | [`docs/`](docs) | Guides and the API reference |
+| [`tools/`](tools) | `make-link.mjs`: makes *Open in TerraWorld* links |
+| [`CHANGELOG.md`](CHANGELOG.md) | What each API version added |
 | [`types/`](types) | `terraworld.d.ts` and `jsconfig.json` for autocomplete and type checking in VS Code |
 
 ## Install scripts
@@ -70,6 +73,10 @@ Scripts save straight into `twscript`, so there is no copy and paste:
   asks for a name, adds `.js` and creates `twscript` if needed. An existing file is replaced only after you confirm.
 - The first save asks for write access to the folder.
 
+**Copy link to this script** in the panel toolbar makes an *Open in TerraWorld* link: the script opens in the editor
+of whoever clicks it and is never run automatically. Every sample in [samples/](samples) has one; see
+[docs/share-links.md](docs/share-links.md) and `node tools/make-link.mjs <file.js>`.
+
 **Ask AI** next to **Run** prepares a message for ChatGPT, Claude or another assistant, including the full API
 types; see [docs/ai-guide.md](docs/ai-guide.md).
 
@@ -82,6 +89,8 @@ paste a script into the editor and run it, or start from the **Sample scripts** 
 - [API reference](docs/api-reference.md) — every `tw.*` namespace
 - [UI blocks, modals and prompts](docs/ui-blocks.md) — `tw.ui`
 - [Map marks and highlights](docs/map-marks.md) — `tw.map`
+- [Editing the world](docs/editing.md) — `tw.edit`: draft, preview, Apply
+- [Share links](docs/share-links.md) — "Open in TerraWorld" links and their format
 - [Sandbox and limits](docs/sandbox.md) — what scripts cannot do
 - [Guide for AI assistants](docs/ai-guide.md) — paste this into ChatGPT/Claude to have it write a script for you
 - [Types](types) — `terraworld.d.ts`, the exact API; it wins when the docs disagree

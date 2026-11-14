@@ -19,7 +19,12 @@ The file `terraworld.d.ts` (attached) declares the exact API: the global `tw` ha
 
 - The script is the body of an `async` function in strict mode. Top-level `await` and `return` are allowed.
 - No `import`/`export`, no DOM, no `fetch`/network, no storage. The only API is the global `tw` object below.
-- Read-only: scripts cannot modify the world.
+- Reads never change the world. To change it, draft with `tw.edit` and call `await tw.edit.commit({ label })`;
+  the user previews and presses Apply or Cancel. Check `result.applied`, report `result.count` / `result.skipped`.
+  Without `commit()` nothing changes. Prefer one `tw.edit.replace({ from, to, region })` over `setTile` loops.
+- `tw.edit` only places plain vanilla blocks and walls: furniture/multi-tile objects and modded ids throw, and cells
+  holding furniture or modded content are skipped. Reads keep showing the world as it was when the run started,
+  even after `commit()`.
 - 30 s compute limit on worlds of up to ~20 million tiles. Prefer `tw.tiles.histogram` or `tw.tiles.raw` over
   per-tile callbacks when counting.
 - Coordinates are tiles; `x` to the right, `y` downward, `(0,0)` top-left. Index of a tile in raw arrays:
@@ -33,7 +38,7 @@ The file `terraworld.d.ts` (attached) declares the exact API: the global `tw` ha
 // @tw-api 1
 ```
 
-## API (version 1.1) summary — `terraworld.d.ts` has the full types
+## API (version 1.2) summary — `terraworld.d.ts` has the full types
 
 ```ts
 tw.version: string
@@ -105,7 +110,7 @@ tw.ui.pickTile({ title? }): Promise<{ x, y } | null>        // user clicks one t
   // Waiting for forms and picks does not count toward the 30 s limit.
 ```
 
-**Does not exist — never use:** `tw.edit`, the `color` form field,
+**Does not exist — never use:** placing furniture with `tw.edit`, wire/actuator or chest/sign editing, the `color` form field,
 `tw.world.progression`, `TileGroups.ore`/`gem`/`solid`, `onRowClick`.
 
 ## Gotchas

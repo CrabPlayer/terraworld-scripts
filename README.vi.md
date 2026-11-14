@@ -7,7 +7,8 @@ JavaScript nhỏ trên world đang mở: đếm block, tìm item trong rương, 
 có bảng và biểu đồ. Script chạy trong Web Worker cách ly và chỉ giao tiếp với app qua đối tượng toàn cục `tw`.
 
 > **Trạng thái:** API script phiên bản **1**, chưa ổn định hẳn. Tên hàm có thể đổi trước khi chốt.
-> Hiện script **chỉ đọc**: phân tích và đánh dấu bản đồ được, chưa sửa world được.
+> Từ API 1.2.0 script còn **sửa** được world bằng `tw.edit`: mọi thay đổi được xem trước trên bản đồ và chỉ áp dụng khi
+> bạn bấm **Apply**, thành một bước undo. Xem [docs/editing.md](docs/editing.md) và [changelog](CHANGELOG.md).
 
 [English](README.md)
 
@@ -18,6 +19,8 @@ có bảng và biểu đồ. Script chạy trong Web Worker cách ly và chỉ g
 | [`samples/`](samples) | Script mẫu chính thức (giống menu *Sample scripts* có sẵn trong app) |
 | [`community/<tác-giả>/`](community) | Script người dùng đóng góp, mỗi người một thư mục theo tên GitHub |
 | [`docs/`](docs) | Hướng dẫn và tài liệu API (tiếng Anh) |
+| [`tools/`](tools) | `make-link.mjs`: tạo link *Open in TerraWorld* |
+| [`CHANGELOG.md`](CHANGELOG.md) | Mỗi phiên bản API thêm gì |
 | [`types/`](types) | `terraworld.d.ts` và `jsconfig.json` để có gợi ý và kiểm tra kiểu trong VS Code |
 
 ## Cài script
@@ -70,6 +73,10 @@ Script lưu thẳng vào `twscript`, không cần copy/paste:
   hỏi tên file, tự thêm `.js` và tạo `twscript` nếu chưa có. File trùng tên chỉ bị thay sau khi bạn xác nhận.
 - Lần lưu đầu tiên app sẽ xin quyền ghi vào thư mục.
 
+Nút **Copy link to this script** trên thanh công cụ của panel tạo link *Open in TerraWorld*: ai bấm link sẽ thấy script
+nằm sẵn trong trình soạn, không bao giờ tự chạy. Mỗi script mẫu trong [samples/](samples) đều có link; xem
+[docs/share-links.md](docs/share-links.md) và `node tools/make-link.mjs <file.js>`.
+
 Nút **Ask AI** cạnh **Run** soạn sẵn lời nhắn cho ChatGPT, Claude hay trợ lý khác, kèm đầy đủ kiểu API;
 xem [docs/ai-guide.md](docs/ai-guide.md).
 
@@ -82,6 +89,8 @@ vẫn dán script vào ô soạn thảo để chạy, hoặc bắt đầu từ m
 - [Tham chiếu API](docs/api-reference.md): mọi namespace `tw.*`
 - [Khối UI, modal và prompt](docs/ui-blocks.md): `tw.ui`
 - [Đánh dấu bản đồ](docs/map-marks.md): `tw.map`
+- [Sửa world](docs/editing.md): `tw.edit`, bản nháp, xem trước, Apply
+- [Link chia sẻ](docs/share-links.md): link "Open in TerraWorld" và định dạng của nó
 - [Sandbox và giới hạn](docs/sandbox.md): những gì script không làm được
 - [Hướng dẫn cho AI](docs/ai-guide.md): dán vào ChatGPT/Claude để nhờ AI viết script
 - [Kiểu dữ liệu](types): `terraworld.d.ts`, mô tả chính xác API; khi tài liệu khác `.d.ts` thì `.d.ts` đúng
