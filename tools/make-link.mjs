@@ -3,7 +3,9 @@
 // Format (version 1), same as the app's src/lib/scripting/shareLink.ts:
 //   https://terraworld.dev/world#script=1.<payload>
 //   payload = base64url (no "=" padding) of the zlib stream (deflate + Adler-32) of the
-//   script's exact UTF-8 bytes. Opening a link puts the script in the editor; it never runs it.
+//   script's UTF-8 bytes with LF line endings (files are read with CRLF -> LF, so a Windows
+//   checkout gives the same links as CI; the app's editor uses LF too). Opening a link puts the
+//   script in the editor; it never runs it.
 //
 // Usage:
 //   node tools/make-link.mjs <file.js> [more files...]   print one link per file
@@ -82,10 +84,15 @@ function headerValue(code, key) {
   return new RegExp(`^//\\s*@${key}\\s+(.+)$`, "m").exec(code)?.[1].trim() ?? "";
 }
 
+/** Reads a script as the repo stores it (LF), whatever the local checkout uses. */
+function readScript(file) {
+  return fs.readFileSync(file, "utf8").replace(/\r\n?/g, "\n");
+}
+
 function readmeLinksBlock(base) {
   const files = fs.readdirSync("samples").filter((name) => name.endsWith(".js")).sort();
   const rows = files.map((file) => {
-    const code = fs.readFileSync(path.join("samples", file), "utf8");
+    const code = readScript(path.join("samples", file));
     const url = makeCheckedLink(code, base, file);
     return `| [${headerValue(code, "name") || file}](${file}) | [Open in TerraWorld](${url}) |`;
   });
@@ -127,7 +134,7 @@ function main(argv) {
     return mode === "help" ? 0 : 1;
   }
   if (mode === "print") {
-    for (const file of files) console.log(makeCheckedLink(fs.readFileSync(file, "utf8"), base, file));
+    for (const file of files) console.log(makeCheckedLink(readScript(file), base, file));
     return 0;
   }
   const text = fs.readFileSync(README, "utf8");
