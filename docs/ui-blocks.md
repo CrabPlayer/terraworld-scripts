@@ -163,6 +163,7 @@ Form options: `title`, `description`, `submitLabel`, `fields`. The keys of `fiel
 | `wall` | `label`, `default` (id or name) | Wall id (`number`) |
 | `item` | `label`, `default` (id or name), `optional` | `number \| null`: item id, `null` only when optional and left empty. Check for `null` before using it |
 | `region` | `label`, `default` (a `Region`), `optional` | `Region` `{ x, y, w, h }`; with `optional: true` the type is `Region \| null` (`null` when not picked). Since 1.1.0 |
+| `file` | `label`, `accept` (e.g. `".ttf,.otf,.woff"`), `optional` | `{ name, size, bytes }` (`bytes` is a `Uint8Array`); with `optional: true` it can be `null`. Max 16 MB, read in the browser and never uploaded. Since 1.3.0 |
 
 A `region` field shows a **Pick region** button. Clicking it hides the form while the user drags a rectangle on the
 map (exactly like [`pickRegion`](#picking-on-the-map-pickregion-and-picktile)), then brings the form back with the

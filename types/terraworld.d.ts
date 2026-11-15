@@ -1,7 +1,7 @@
 /**
  * TerraWorld script API — type declarations.
  *
- * @tw-api-version 1.2.0
+ * @tw-api-version 1.3.0
  *
  * Scripts are plain JavaScript run by TerraWorld (https://terraworld.dev) in a sandboxed
  * Web Worker. The whole file is the body of an `async` function that receives `tw`, so
@@ -214,9 +214,29 @@ declare namespace TerraWorld {
 		skippedBy: { modded: number; object: number; shape: number };
 	}
 
+	interface DrawShapeOptions {
+		/**
+		 * Block for the inside of closed shapes, `null` to remove blocks there. Without
+		 * `stroke` it also covers the edge cells, so the whole shape is one block.
+		 */
+		fill?: IdOrName | null;
+		/**
+		 * Block for the outline (drawn over the fill), `null` to remove blocks along it.
+		 * Lines and open paths are drawn with it (or with `fill` when there is no `stroke`).
+		 */
+		stroke?: IdOrName | null;
+		/** Outline thickness in tiles, 1–32. Default 1. The outline is centred on the path. */
+		strokeWidth?: number;
+		/** Wall placed behind every covered cell, `null` to remove walls. */
+		wall?: IdOrName | null;
+		/** Paint id 0–31 for every covered cell (0 = none). */
+		paint?: number;
+		wallPaint?: number;
+	}
+
 	/**
 	 * Changes to the world, made safely in three steps:
-	 * 1. `set…` / `replace` / `fill` only write to a **draft**. The world does not change.
+	 * 1. `set…` / `replace` / `fill` / `drawShape` only write to a **draft**. The world does not change.
 	 * 2. `await tw.edit.commit({ label })` highlights the changed cells on the map and asks
 	 *    the user to Apply or Cancel (waiting does not count toward the time limit).
 	 * 3. Applied changes become **one** undo step (Edit Mode → Undo, or Undo in the Script panel).
@@ -261,6 +281,20 @@ declare namespace TerraWorld {
 		replace(options: ReplaceOptions): number;
 		/** Sets the given fields on every cell of `region`. Returns the number of cells. */
 		fill(region: Region, options: FillOptions): number;
+		/**
+		 * Turns a `tw.shape` into blocks/walls in the draft, with the same rules as the
+		 * editor's Shape tool: a closed shape covers every cell whose centre is inside it
+		 * plus the cells its outline passes through; `stroke` then draws the outline on top.
+		 * Parts outside the world are dropped. Returns the number of cells drafted.
+		 *
+		 * Draw several shapes one after another to layer them: later calls win.
+		 * A shape may span at most 2,000,000 cells (bounding box) per call.
+		 * @example
+		 * const plate = tw.shape.rect(100, 200, 60, 20, { radius: 4 });
+		 * tw.edit.drawShape(plate, { fill: "Gold Brick", stroke: "Obsidian", wall: "Gold Brick Wall" });
+		 * await tw.edit.commit({ label: "Plate" });
+		 */
+		drawShape(shape: Shape, options: DrawShapeOptions): number;
 		/** Cells in the current draft. */
 		readonly count: number;
 		/** Empties the draft without asking the user. */
@@ -271,6 +305,140 @@ declare namespace TerraWorld {
 		 * Resolves immediately with `applied: false` when the draft is empty.
 		 */
 		commit(options?: { label?: string }): Promise<CommitResult>;
+	}
+
+	// ── Shapes ─────────────────────────────────────────────────────────
+
+	/**
+	 * A point of a path. Without `in`/`out` it is a corner joined by straight lines;
+	 * `in` / `out` are the Bézier control points before / after it (absolute coordinates).
+	 */
+	interface PathAnchor {
+		x: number;
+		y: number;
+		in?: { x: number; y: number };
+		out?: { x: number; y: number };
+		/** Rounds this corner with an arc of this radius (tiles). */
+		radius?: number;
+	}
+
+	/**
+	 * `"sans"` (Be Vietnam Pro Bold) and `"display"` (Bungee) are bundled outline fonts
+	 * with Latin and Vietnamese letters, downloaded the first time they are used.
+	 * `"pixel"` is a built-in 5×7 bitmap font (ASCII; accents are dropped) for small text.
+	 * Or pass the bytes of a .ttf / .otf / .woff file, e.g. the value of a
+	 * `{ type: "file" }` prompt field.
+	 */
+	type FontSource = "sans" | "display" | "pixel" | ArrayBuffer | Uint8Array | { bytes: Uint8Array | ArrayBuffer };
+
+	interface TextOptions {
+		/** Default `"sans"`. */
+		font?: FontSource;
+		/**
+		 * Height of a capital letter in tiles (1–512). Default 16; `"pixel"`: default 7,
+		 * rounded to a multiple of 7. Outline fonts need about 12+ to stay readable:
+		 * use `"pixel"` below that.
+		 */
+		size?: number;
+		/** Extra tiles between letters (may be negative). */
+		letterSpacing?: number;
+		/** Tiles from one line to the next (text may contain "\n"). Default 1.5 × size. */
+		lineHeight?: number;
+		/** Where each line sits relative to x = 0: starts there, is centred on it, or ends there. Default `"left"`. */
+		align?: "left" | "center" | "right";
+	}
+
+	/**
+	 * An immutable vector shape: one or more paths. Methods return a **new** shape;
+	 * nothing changes the world until `tw.edit.drawShape(shape, …)` and `commit()`.
+	 */
+	interface Shape {
+		/** True when there is nothing to draw (e.g. `intersect` of shapes that do not overlap). */
+		readonly empty: boolean;
+		/** Box of the cells the path covers, as a `Region` (strokes wider than 1 reach further). */
+		bounds(): Region;
+		/** Moves by (dx, dy) tiles. */
+		translate(dx: number, dy: number): Shape;
+		/** Moves the shape so the top-left cell of `bounds()` is (x, y). */
+		moveTo(x: number, y: number): Shape;
+		/**
+		 * Resizes around the centre of `bounds()`: `scale(2)` doubles width and height,
+		 * `scale(2, 1)` only the width. A negative factor also mirrors.
+		 */
+		scale(sx: number, sy?: number): Shape;
+		/** Rotates clockwise (as seen on the map) around the centre of `bounds()`. */
+		rotate(degrees: number): Shape;
+		/** Mirrors in place: `"horizontal"` (default) swaps left and right, `"vertical"` top and bottom. */
+		flip(axis?: "horizontal" | "vertical"): Shape;
+		/** Grows (positive) or shrinks (negative) a closed shape by `distance` tiles on every side. */
+		offset(distance: number): Shape;
+	}
+
+	/**
+	 * Vector shapes, the same system as the editor's Pen and Shape tools. Build a shape,
+	 * combine and transform it, then draw it with `tw.edit.drawShape`.
+	 *
+	 * Coordinates are tile cells: the point (x, y) is the **centre** of cell (x, y), and
+	 * y grows downward. A closed path covers every cell whose centre is inside it plus the
+	 * cells the path itself passes through, so paths include both
+	 * end cells: `M 0 0 H 9 V 4 H 0 Z` is 10 × 5 cells.
+	 * Several closed paths in one shape fill even-odd: a path inside another cuts a hole.
+	 *
+	 * Limits: 50,000 points per shape, 500,000 characters of path data / SVG, 2,000 characters of text.
+	 *
+	 * @example
+	 * // A gold plate with the world name cut out of it, above the spawn.
+	 * const name = await tw.shape.text(tw.world.name, { font: "display", size: 14 });
+	 * const box = name.bounds();
+	 * const plate = tw.shape.rect(box.x - 4, box.y - 4, box.w + 8, box.h + 8, { radius: 3 });
+	 * const logo = tw.shape.subtract(plate, name).moveTo(tw.world.spawn.x - 40, tw.world.spawn.y - 60);
+	 * tw.edit.drawShape(logo, { fill: "Gold Brick", wall: "Gold Brick Wall" });
+	 * await tw.edit.commit({ label: "Name plate" });
+	 */
+	interface ShapeApi {
+		/**
+		 * A path from SVG path data (`M L H V C S Q T A Z`, lower case = relative), or from
+		 * an array of anchors. Path data is closed by `Z`; an anchor array by `{ closed: true }`.
+		 * Open paths are drawn as lines.
+		 * @example
+		 * const wave = tw.shape.path("M 0 0 C 20 -15 40 15 60 0");
+		 * const triangle = tw.shape.path([{ x: 0, y: 20 }, { x: 15, y: 0 }, { x: 30, y: 20 }], { closed: true });
+		 */
+		path(data: string | readonly PathAnchor[], options?: { closed?: boolean }): Shape;
+		/** A rectangle of `w` × `h` cells whose top-left cell is (x, y); `radius` rounds the corners. */
+		rect(x: number, y: number, w: number, h: number, options?: { radius?: number }): Shape;
+		/** The ellipse inscribed in the `w` × `h` cell box whose top-left cell is (x, y). */
+		ellipse(x: number, y: number, w: number, h: number): Shape;
+		/** A straight line from cell (x1, y1) to cell (x2, y2). */
+		line(x1: number, y1: number, x2: number, y2: number): Shape;
+		/**
+		 * Text as a shape: the top of the capital letters is y = 0 and the baseline y = `size`.
+		 * Position it afterwards with `moveTo` / `translate`. Outline fonts load on first use
+		 * (a small download for `"sans"` / `"display"`), so this is async.
+		 * @example
+		 * const title = await tw.shape.text("HELLO", { font: "pixel", size: 14 });
+		 * tw.edit.drawShape(title.moveTo(100, 200), { fill: "Stone Block" });
+		 */
+		text(text: string, options?: TextOptions): Promise<Shape>;
+		/**
+		 * Reads the `<path>`, `<rect>`, `<circle>`, `<ellipse>`, `<polygon>`, `<polyline>` and
+		 * `<line>` elements of SVG markup, with `transform` attributes (also on `<g>`).
+		 * One SVG unit is one tile; colours, `viewBox`, text and `<use>` are ignored.
+		 * Closed elements are merged into one filled area.
+		 */
+		fromSvg(svg: string): Shape;
+		/**
+		 * Area covered by any of the shapes. Booleans need closed shapes and return polygons
+		 * (curves are flattened). Rectangles and pixel text combine cell for cell; with
+		 * curved shapes, parts of the result thinner than 2 tiles can be lost.
+		 */
+		union(...shapes: Shape[]): Shape;
+		/** `shape` minus every other shape. */
+		subtract(shape: Shape, ...others: Shape[]): Shape;
+		/** Area covered by all of the shapes. */
+		intersect(...shapes: Shape[]): Shape;
+		/** Area covered by an odd number of the shapes. */
+		xor(...shapes: Shape[]): Shape;
 	}
 
 	// ── Entities ───────────────────────────────────────────────────────
@@ -431,7 +599,21 @@ declare namespace TerraWorld {
 		 * A "Pick region" button: the form hides while the user drags a rectangle on the map
 		 * (same as `tw.ui.pickRegion`). Resolves to the region, or null when optional and not picked.
 		 */
-		| { type: "region"; label: string; default?: Region; optional?: boolean };
+		| { type: "region"; label: string; default?: Region; optional?: boolean }
+		/**
+		 * A file chooser (max 16 MB). The file is read in the browser, never uploaded.
+		 * `accept` filters the dialog, e.g. `".ttf,.otf"`. Resolves to a `FileValue`, or null
+		 * when optional and left empty.
+		 */
+		| { type: "file"; label: string; accept?: string; optional?: boolean };
+
+	/** The file picked in a `{ type: "file" }` field. */
+	interface FileValue {
+		name: string;
+		/** Size in bytes. */
+		size: number;
+		bytes: Uint8Array;
+	}
 
 	interface Form<F extends Record<string, FormField> = Record<string, FormField>> {
 		title?: string;
@@ -451,6 +633,8 @@ declare namespace TerraWorld {
 		: T extends { type: "item" } ? number | null
 		: T extends { type: "region"; optional: true } ? Region | null
 		: T extends { type: "region" } ? Region
+		: T extends { type: "file"; optional: true } ? FileValue | null
+		: T extends { type: "file" } ? FileValue
 		: never;
 
 	type FormValues<F extends Record<string, FormField>> = { [K in keyof F]: FieldValue<F[K]> };
@@ -483,7 +667,7 @@ declare namespace TerraWorld {
 	}
 
 	interface Api {
-		/** API version, e.g. "1.2.0". */
+		/** API version, e.g. "1.3.0". */
 		readonly version: string;
 		readonly world: World;
 		readonly tiles: Tiles;
@@ -493,6 +677,8 @@ declare namespace TerraWorld {
 		readonly ui: Ui;
 		/** Draft → preview → user approval → one undo step. See `TerraWorld.Edit`. */
 		readonly edit: Edit;
+		/** Vector shapes (paths, text, booleans) to draw with `tw.edit.drawShape`. See `TerraWorld.ShapeApi`. */
+		readonly shape: ShapeApi;
 		readonly entitiesLoaded: boolean;
 		readonly chests: readonly Chest[];
 		readonly npcs: readonly Npc[];

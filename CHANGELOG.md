@@ -4,6 +4,20 @@ Versions of the `tw` script API, as declared by `@tw-api-version` in
 [`types/terraworld.d.ts`](types/terraworld.d.ts). Minor versions only add features; a script written for an older
 1.x version keeps working. Scripts declare the major version in their header (`// @tw-api 1`).
 
+## 1.3.0
+
+- **`tw.shape`**: vector shapes, the same system as the editor's Pen and Shape tools. `path` (SVG path data
+  `M L H V C S Q T A Z`, or anchor points), `rect`, `ellipse`, `line`, `text` (async), `fromSvg`; booleans
+  `union`, `subtract`, `intersect`, `xor`; shape methods `bounds`, `translate`, `moveTo`, `scale`, `rotate`, `flip`,
+  `offset`, `empty`.
+- Text fonts: `"sans"` (Be Vietnam Pro Bold) and `"display"` (Bungee), bundled and downloaded on first use;
+  `"pixel"`, a built-in 5 × 7 bitmap font for small text; or your own .ttf / .otf / .woff file.
+- **`tw.edit.drawShape(shape, { fill, stroke, strokeWidth, wall, paint, wallPaint })`** turns a shape into blocks and
+  walls in the draft; preview, Apply/Cancel and undo work as for the rest of `tw.edit`.
+- `file` form field for `tw.ui.prompt`: resolves to `{ name, size, bytes }` (max 16 MB, read in the browser).
+- New samples: [`text-banner.js`](samples/text-banner.js), [`shape-logo.js`](samples/shape-logo.js).
+- New page: [docs/shapes.md](docs/shapes.md), with a beginner's guide to SVG path syntax.
+
 ## 1.2.0
 
 - **`tw.edit`**: scripts can change the world. Changes are drafted, previewed on the map and applied only when the

@@ -1,6 +1,6 @@
 # Documentation
 
-Documentation for the TerraWorld script library, API version 1.2.0. What changed between versions: [CHANGELOG.md](../CHANGELOG.md).
+Documentation for the TerraWorld script library, API version 1.3.0. What changed between versions: [CHANGELOG.md](../CHANGELOG.md).
 
 | Page | What it covers |
 |---|---|
@@ -9,6 +9,7 @@ Documentation for the TerraWorld script library, API version 1.2.0. What changed
 | [ui-blocks.md](ui-blocks.md) | `tw.ui`: blocks, sections, buttons, modals, `prompt` forms |
 | [map-marks.md](map-marks.md) | `tw.map`: highlights and Mask Display pointers |
 | [editing.md](editing.md) | `tw.edit`: draft → preview → Apply, safety rules, limits |
+| [shapes.md](shapes.md) | `tw.shape` and `tw.edit.drawShape`: paths, SVG path syntax, booleans, text and fonts |
 | [share-links.md](share-links.md) | "Open in TerraWorld" links: behaviour, format, `tools/make-link.mjs` |
 | [sandbox.md](sandbox.md) | How scripts run, what is blocked, time and size limits |
 | [ai-guide.md](ai-guide.md) | A compact guide to paste into an AI assistant |

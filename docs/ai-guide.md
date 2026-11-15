@@ -25,6 +25,10 @@ The file `terraworld.d.ts` (attached) declares the exact API: the global `tw` ha
 - `tw.edit` only places plain vanilla blocks and walls: furniture/multi-tile objects and modded ids throw, and cells
   holding furniture or modded content are skipped. Reads keep showing the world as it was when the run started,
   even after `commit()`.
+- To draw text, logos, curves or other figures, build a vector shape with `tw.shape`, then
+  `tw.edit.drawShape(shape, { fill, stroke, strokeWidth, wall })` and `await tw.edit.commit(...)`. Shapes never change
+  the world by themselves; each shape method returns a new shape. `tw.shape.text` is async: always `await` it. Use
+  `font: "pixel"` below about 12 tiles, `"sans"` or `"display"` above. A point is a cell centre, y grows downward.
 - 30 s compute limit on worlds of up to ~20 million tiles. Prefer `tw.tiles.histogram` or `tw.tiles.raw` over
   per-tile callbacks when counting.
 - Coordinates are tiles; `x` to the right, `y` downward, `(0,0)` top-left. Index of a tile in raw arrays:
@@ -38,7 +42,7 @@ The file `terraworld.d.ts` (attached) declares the exact API: the global `tw` ha
 // @tw-api 1
 ```
 
-## API (version 1.2) summary — `terraworld.d.ts` has the full types
+## API (version 1.3) summary — `terraworld.d.ts` has the full types
 
 ```ts
 tw.version: string
@@ -104,14 +108,26 @@ tw.ui.prompt({ title?, description?, submitLabel?, fields: Record<key, Field> })
        | { type: "item", label, default?: id|name, optional? }                -> number | null (check null)
        | { type: "region", label, default?: Region }                          -> Region (user drags on the map)
        | { type: "region", ..., optional: true }                              -> Region | null
+       | { type: "file", label, accept?: ".ttf,.otf", optional? }             -> { name, size, bytes: Uint8Array } (max 16 MB)
 
 tw.ui.pickRegion({ title? }): Promise<Region | null>        // user drags a rectangle on the map; null = cancelled
 tw.ui.pickTile({ title? }): Promise<{ x, y } | null>        // user clicks one tile; null = cancelled
   // Waiting for forms and picks does not count toward the 30 s limit.
+
+tw.edit.drawShape(shape, { fill?, stroke?, strokeWidth?: 1-32, wall?, paint?, wallPaint? }): number  // null = remove
+  // draft only; then await tw.edit.commit({ label }). Later drawShape calls win. Max 2,000,000 cells (bounding box) per call.
+
+tw.shape.path("M 0 0 H 9 V 4 H 0 Z")          // SVG path data M L H V C S Q T A Z, lower case = relative; Z closes (filled)
+tw.shape.path([{ x, y, in?, out?, radius? }], { closed?: boolean })
+tw.shape.rect(x, y, w, h, { radius? }) / ellipse(x, y, w, h) / line(x1, y1, x2, y2)   // in cells
+await tw.shape.text(str, { font?: "sans"|"display"|"pixel"|fileBytes, size?: capHeightTiles, letterSpacing?, lineHeight?, align?: "left"|"center"|"right" })
+tw.shape.fromSvg(svgMarkup)                   // 1 SVG unit = 1 tile
+tw.shape.union / subtract / intersect / xor(...shapes)   // closed shapes only; lines throw
+Shape: empty, bounds(): Region, translate(dx, dy), moveTo(x, y), scale(sx, sy?), rotate(deg), flip("horizontal"|"vertical"), offset(d)
 ```
 
 **Does not exist — never use:** placing furniture with `tw.edit`, wire/actuator or chest/sign editing, the `color` form field,
-`tw.world.progression`, `TileGroups.ore`/`gem`/`solid`, `onRowClick`.
+stroke-to-shape, text along a path, nonzero fill in `tw.shape`, `tw.world.progression`, `TileGroups.ore`/`gem`/`solid`, `onRowClick`.
 
 ## Gotchas
 

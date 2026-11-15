@@ -8,7 +8,8 @@ with tables and charts. Scripts run in a sandboxed Web Worker and talk to the ap
 
 > **Status:** script API version **1**, still settling. Names may change before it is declared stable.
 > Since API 1.2.0 scripts can also **edit** the world with `tw.edit`: every change is previewed on the map and applied
-> only when you press **Apply**, as one undo step. See [docs/editing.md](docs/editing.md) and the [changelog](CHANGELOG.md).
+> only when you press **Apply**, as one undo step. Since 1.3.0 they can also draw **shapes and text** in blocks with
+> `tw.shape`. See [docs/editing.md](docs/editing.md), [docs/shapes.md](docs/shapes.md) and the [changelog](CHANGELOG.md).
 
 [Tiếng Việt](README.vi.md)
 

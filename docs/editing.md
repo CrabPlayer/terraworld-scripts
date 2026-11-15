@@ -1,6 +1,7 @@
 # Editing the world (`tw.edit`)
 
-Since **API 1.2.0** a script can change blocks, walls, paint, liquids and slopes. Nothing is ever written behind your
+Since **API 1.2.0** a script can change blocks, walls, paint, liquids and slopes (and since 1.3.0 draw vector shapes
+and text with [`tw.edit.drawShape`](shapes.md)). Nothing is ever written behind your
 back: the script only builds a **draft**, TerraWorld shows it on the map, and **you** press Apply or Cancel.
 
 The exact signatures are in [`types/terraworld.d.ts`](../types/terraworld.d.ts) (`TerraWorld.Edit`); when this page

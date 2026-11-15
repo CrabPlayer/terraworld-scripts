@@ -8,7 +8,8 @@ có bảng và biểu đồ. Script chạy trong Web Worker cách ly và chỉ g
 
 > **Trạng thái:** API script phiên bản **1**, chưa ổn định hẳn. Tên hàm có thể đổi trước khi chốt.
 > Từ API 1.2.0 script còn **sửa** được world bằng `tw.edit`: mọi thay đổi được xem trước trên bản đồ và chỉ áp dụng khi
-> bạn bấm **Apply**, thành một bước undo. Xem [docs/editing.md](docs/editing.md) và [changelog](CHANGELOG.md).
+> bạn bấm **Apply**, thành một bước undo. Từ 1.3.0 script còn vẽ được **hình và chữ** bằng block với `tw.shape`.
+> Xem [docs/editing.md](docs/editing.md), [docs/shapes.md](docs/shapes.md) và [changelog](CHANGELOG.md).
 
 [English](README.md)
 

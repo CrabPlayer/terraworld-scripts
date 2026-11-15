@@ -18,13 +18,14 @@ Coordinates are tile coordinates: `x` grows to the right, `y` grows downward, `(
 - [`tw.map`](#twmap) (details in [map-marks.md](map-marks.md))
 - [`tw.ui`](#twui) (details in [ui-blocks.md](ui-blocks.md))
 - [`tw.edit`](#twedit) (details in [editing.md](editing.md))
+- [`tw.shape`](#twshape) (details in [shapes.md](shapes.md))
 - [Not available yet](#not-available-yet)
 
 ## `tw.version`
 
-`string` — the API version, currently `"1.2.0"`. Minor versions only add features (see the
+`string` — the API version, currently `"1.3.0"`. Minor versions only add features (see the
 [changelog](../CHANGELOG.md)): 1.1.0 added `tw.ui.pickRegion`, `tw.ui.pickTile` and the `region` form field; 1.2.0
-added `tw.edit`. A script that uses them does not work in an older build of the app.
+added `tw.edit`; 1.3.0 added `tw.shape`, `tw.edit.drawShape` and the `file` form field. A script that uses them does not work in an older build of the app.
 
 ## `tw.world`
 
@@ -240,6 +241,7 @@ the user presses Apply (one undo step) or Cancel. Since 1.2.0.
 | `setPaint`, `setWallPaint`, `setLiquid`, `setSlope` | One cell |
 | `replace({ from, to, kind?, region? })` | Bulk replace; `to` may be a function of the old id. Returns cells drafted |
 | `fill(region, { tile?, wall?, paint?, wallPaint?, liquid? })` | Set fields on every cell of a region |
+| `drawShape(shape, { fill?, stroke?, strokeWidth?, wall?, paint?, wallPaint? })` | Draw a [`tw.shape`](#twshape) into the draft. Since 1.3.0 |
 | `count`, `discard()` | Draft size; empty the draft |
 | `commit({ label? })` | Preview and wait; resolves to `{ applied, count, skipped, skippedBy }` |
 
@@ -252,6 +254,26 @@ if (!result.applied) tw.ui.log("Cancelled");
 Only plain vanilla blocks and walls can be placed; furniture and modded cells are skipped. Reads keep showing the
 world as it was when the run started, even after `commit()`. See [editing.md](editing.md).
 
+## `tw.shape`
+
+Vector shapes, drawn into the world with `tw.edit.drawShape`. Coordinates are tiles; the point (x, y) is the centre
+of cell (x, y) and y grows downward. Since 1.3.0. Full guide: [shapes.md](shapes.md).
+
+| Member | Notes |
+|---|---|
+| `path(data, { closed? })` | SVG path data (`M L H V C S Q T A Z`, lower case = relative) or an array of `{ x, y, in?, out?, radius? }` anchors |
+| `rect(x, y, w, h, { radius? })`, `ellipse(x, y, w, h)`, `line(x1, y1, x2, y2)` | Basic shapes, in cells |
+| `await text(text, { font?, size?, letterSpacing?, lineHeight?, align? })` | Fonts `"sans"`, `"display"`, `"pixel"` or font-file bytes |
+| `fromSvg(svg)` | Reads path/rect/circle/ellipse/polygon/polyline/line; 1 SVG unit = 1 tile |
+| `union`, `subtract`, `intersect`, `xor` | Booleans on closed shapes |
+| Shape: `empty`, `bounds()`, `translate`, `moveTo`, `scale`, `rotate`, `flip`, `offset` | Each returns a new shape |
+
+```js
+const title = await tw.shape.text("HELLO", { font: "pixel", size: 14 });
+tw.edit.drawShape(title.moveTo(100, 200), { fill: "Stone Block" });
+await tw.edit.commit({ label: "Title" });
+```
+
 ## Not available yet
 
 These appear in design notes but **do not exist yet**. Calling a missing function throws `TypeError`; a form field
@@ -259,6 +281,7 @@ of an unsupported type is not shown correctly.
 
 - `color` form field.
 - `tw.edit` placing furniture / multi-tile objects, editing wires and actuators, or editing entities (chests, signs…).
+- `tw.shape`: turning a stroke into a shape, text along a path, the nonzero fill rule.
 - Plugins, persistent storage, network access.
 - `tw.world.progression` — use `tw.world.bosses`.
 - Checking `@tw-api` against the app version. The header is informational for now.
